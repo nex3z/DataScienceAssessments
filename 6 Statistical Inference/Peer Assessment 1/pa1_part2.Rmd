@@ -1,0 +1,82 @@
+---
+title: "The Effect of VC on Tooth Growth in Guinea Pigs"
+date: "Tuesday, March 17, 2015"
+output: pdf_document
+---
+
+## Overview
+
+This is the project for the statistical inference class. This report investigated the effect of vitamin C on tooth growth in Guinea pigs.
+
+
+## 1. Load the ToothGrowth data and perform some basic exploratory data analyses.
+
+Load the data into workspace.
+```{r, echo=TRUE}
+data(ToothGrowth)
+```
+
+Plot the effect of supplement type and dosage on tooth growth as below.
+```{r, echo=TRUE, fig.height=3}
+library(ggplot2)
+p <- ggplot(ToothGrowth, aes(factor(dose), len, fill=supp))
+p + geom_boxplot() + 
+  ggtitle("The Effect of Supplement Type and Dosage on Tooth Growth") + 
+  labs(x="Supplement type", y="Tooth length")
+```
+
+From the plot we can see that the tooth length increases as the doseage increases for both supplement type.
+
+
+## 2.Provide a basic summary of the data.
+
+In the ```ToothGrowth``` data set, the response is the length of odontoblasts (teeth) in each of 10 guinea pigs at each of three dose levels of Vitamin C (0.5, 1, and 2 mg) with each of two delivery methods (orange juice or ascorbic acid).
+
+The ```ToothGrowth``` is a data frame with 60 observations on 3 variables: tooth length (```len```), Supplement type (```supp```, VC or OJ) and dose in milligrams (```dose```). 
+
+A summary is shown as below.
+```{r, echo=TRUE}
+summary(ToothGrowth)
+```
+
+
+## 3. Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. 
+
+Perform t-test on supplement type.
+```{r, echo=FALSE}
+options(scipen=999)
+```
+
+```{r, echo=TRUE}
+full_test <- t.test(len ~ supp, data = ToothGrowth, var.equal = T)
+print(full_test)
+```
+The test above gives a p-value of `r full_test$p.value` and 95% confidence interval of `r full_test$conf`, showing that without considering the dosage, there is no obvious difference in tooth length for OJ and VC. 
+
+Perform t-test with 0.5mg dosage.
+```{r, echo=TRUE}
+dose05_test <- t.test(len ~ supp, data = subset(ToothGrowth, dose == 0.5), 
+                      var.equal = T)
+print(dose05_test)
+```
+In the test above, the p-value is `r round(dose05_test$p.value, 4)` and the 95% confidence interval is `r round(dose05_test$conf, 4)`. This suggests that with a dosage of 0.5mg, OJ has better effect on tooth growth than VC.
+
+Perform t-test with 1.0mg dosage.
+```{r, echo=TRUE}
+dose10_test <- t.test(len ~ supp, data = subset(ToothGrowth, dose == 1.0), 
+                      var.equal = T)
+print(dose10_test)
+```
+In the test above, the p-value is `r round(dose10_test$p.value, 4)` and the 95% confidence interval is `r round(dose10_test$conf, 4)`. This suggests that with a dosage of 1.0mg, OJ has better effect on tooth growth than VC.
+
+Perform t-test with 2.0mg dosage.
+```{r, echo=TRUE}
+dose20_test <- t.test(len ~ supp, data = subset(ToothGrowth, dose == 2.0), 
+                      var.equal = T)
+print(dose20_test)
+```
+In the test above, the p-value is `r round(dose20_test$p.value, 4)` and the 95% confidence interval is `r round(dose20_test$conf, 4)`. This suggests that there is no obvious difference in tooth length for OJ and VC. 
+
+
+## Conclusions 
+There is no obvious difference in tooth length for OJ and VC without consideringthe dosage. For 0.5mg dosage and 1.0mg dosage, OJ has better effect on tooth growth than VC. For 2.0mg dosage, there is no obvious difference in tooth length for OJ and VC. 

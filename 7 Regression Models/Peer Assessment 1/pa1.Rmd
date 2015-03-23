@@ -1,0 +1,85 @@
+---
+title: "The MPG Difference between Automatic and Manual Transmission"
+author: "LiTx"
+date: "2015.3.18"
+output: pdf_document
+---
+
+## 1. Summary
+
+This report explores the relationship between a set of variables and miles per gallon (MPG) (outcome). Investigates whether automatic or manual transmission is better for MPG, and quantify the MPG difference between automatic and manual transmissions.
+
+
+## 2. Load the data
+
+```{r}
+data(mtcars)
+mtcars$am <- factor(mtcars$am,labels=c('Automatic','Manual'))
+```
+
+
+## 3. Is an automatic or manual transmission better for MPG
+
+Plot the MPG of automatic and manual transmission as shown in ```6.1```. From the figure, we can see that the MPG of manual is significantly larger than that of automatic.
+
+Perform t-test as below.
+
+```{r, echo=TRUE}
+test <- t.test(mpg ~ am, data = mtcars)
+```
+
+The result is shown in ```6.2```. The test above gives a p-value of `r test$p.value` and a 95% confidence interval of `r test$conf`, suggesting a difference in MPG between automatic and manual transmission.
+
+
+## 4. Quantify the MPG difference between automatic and manual transmissions
+
+Select model to in a Stepwise Algorithm.
+
+```{r, echo=TRUE}
+selectModel = step(lm(data = mtcars, mpg ~ .), trace=0, steps=10000)
+print(selectModel$call)
+```
+
+The result is shown in ```6.3```. From the result, we can choose the model with 3 variable: ```wt```, ```qsec``` and ```am```.
+
+```{r, echo=TRUE}
+model <- lm(mpg~am:wt + am:qsec, data=mtcars)
+```
+
+The result is shown in ```6.4```.
+
+
+## 5. Conclusion
+
+The model we choose in ```4``` takes ```wt```, ```qsec``` and ```am``` into consideration. The mpg is largely determined by the interplay between weight, accelaration and tramsmission. Cars with manual transmission have better MPG performance when the weight gets heavier. But for cars with higher accelaration speed, automatic beats manual on MPG performance.
+
+As a result, the question of automatic and manual transmission cannot be answered without taking weight and accelaration into consideration.
+
+
+## 6. Appendix
+
+### 6.1. 
+```{r, echo=TRUE, fig.height=4, fig.width=5}
+library(ggplot2)
+p <- ggplot(mtcars, aes(am, mpg))
+p + geom_boxplot() + 
+  ggtitle("MPG of Automatic and Manual Transmission") + 
+  labs(x="Transmission type", y="MPG")
+```
+
+### 6.2. 
+```{r, echo=TRUE}
+print(test)
+```
+
+### 6.3. 
+```{r, echo=TRUE}
+summary(selectModel)
+```
+
+### 6.4.
+```{r, echo=TRUE}
+summary(model)
+par(mfrow=c(2, 2))    
+plot(model)
+```

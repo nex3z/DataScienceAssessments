@@ -1,0 +1,19 @@
+---
+title: "Impacts of Severe Weather Events on Population Health and Economic"
+output: html_document
+---
+
+## Synopsis
+
+
+## Data Processing
+
+1. Load data
+```{r, echo=TRUE}
+file <- bzfile("data/repdata-data-StormData.csv.bz2", open = "r")
+data <- read.table(file, header = TRUE, sep = ",")
+close(file)
+remove(file)
+
+```
+

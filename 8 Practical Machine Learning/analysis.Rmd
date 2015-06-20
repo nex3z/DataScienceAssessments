@@ -1,0 +1,130 @@
+---
+title: "Practical Machine Learning Assessment"
+author: "Tianxing Li"
+date: "2015. 4. 23"
+output: html_document
+---
+
+## 1. Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, the goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+
+## 2. Load data
+
+The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har. If you use the document you create for this class for any purpose please cite them as they have been very generous in allowing their data to be used for this kind of assignment. 
+
+The packages used in the report are:
+```{r, echo=FALSE}
+library(caret)
+library(rpart)
+```
+
+Load the datasets from local. If the datasets don't exist, download them first.
+```{r}
+# Download the datasets in case they don't exist.
+  if (!file.exists("data/pml-training.csv")) {
+  dir.create("data")
+  download.file(
+    "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv",
+    "data/pml-training.csv")
+}
+if (!file.exists("data/pml-testing.csv")) {
+  download.file(
+    "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv",
+    "data/pml-testing.csv")
+}
+
+```
+
+```{r}
+pml_training <- read.csv("data/pml-training.csv", na.strings=c("NA","#DIV/0!",""))
+pml_testing <- read.csv("data/pml-testing.csv", na.strings=c("NA","#DIV/0!",""))
+```
+
+## 3. Data cleaning
+
+Set seed first.
+```{r}
+set.seed(10010)
+```
+
+The `pml_training` has 160 variables. Some variables are filled with `NA`s. Pick the variables with 90% `NA`s and drop them from our training dataset.
+```{r}
+na_rate <- colSums(is.na(pml_training)) / nrow(pml_training)
+drops <- names(na_rate)[na_rate > 0.9]
+pml_training <- pml_training[, !(names(pml_training) %in% drops)]
+```
+
+Some variables have near zero variance, drop them as well.
+```{r}
+pml_training <- pml_training[, !nearZeroVar(pml_training, saveMetrics=TRUE)$nzv]
+```
+
+Also drop the index, name and time variables. After we get the cleaned data, splist it into training and testing dataset.
+```{r}
+drop_col_names <- c("X", "user_name", "raw_timestamp_part_1", "raw_timestamp_part_2", "cvtd_timestamp")
+pml_training <- pml_training[, !(names(pml_training) %in% drop_col_names)]
+
+split <- createDataPartition(y=pml_training$classe, p=0.75, list=FALSE)
+split_training <- pml_training[split, ] 
+split_testing <- pml_training[-split, ] 
+```
+
+
+## 4. Build model
+
+### 4.1. Setup cross validation
+
+With the data cleaned, build the decision tress.
+```{r}
+cv <- trainControl(method = "cv", number = 5, verboseIter=FALSE , allowParallel=TRUE)
+```
+
+### 4.2. Build decision tree
+
+Build decision tree as folllow:
+```{r, cache=TRUE}
+dt <- rpart(classe ~ ., data=split_training, method="class")
+```
+
+Test the model with testing dataset.
+```{r, cache=TRUE}
+predict_dt <- predict(dt, split_testing, type = "class")
+confusionMatrix(predict_dt, split_testing$classe)
+```
+
+### 4.3. Build random forest
+
+Build random forest as folllow:
+```{r, cache=TRUE}
+rf <- train(classe ~ ., data = split_training, method = "rf", trControl= cv)
+```
+
+Test the model with testing dataset.
+```{r, cache=TRUE}
+predict_rf <- predict(rf, split_testing)
+confusionMatrix(predict_rf, split_testing$classe)
+```
+
+
+## 5. Decision
+
+The test result above shows that random forest has better performance than random forest. 
+
+Choose random forest to predict the `pml_testing`.
+```{r, cache=TRUE}
+answers <- predict(rf, pml_testing)
+
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+pml_write_files(answers)
+
+```
+

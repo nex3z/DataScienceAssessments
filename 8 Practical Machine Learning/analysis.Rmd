@@ -1,7 +1,7 @@
 ---
 title: "Practical Machine Learning Assessment"
 author: "Tianxing Li"
-date: "2015. 4. 23"
+date: "2015/4/23"
 output: pdf_document
 ---
 
@@ -15,7 +15,7 @@ Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible t
 The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har. If you use the document you create for this class for any purpose please cite them as they have been very generous in allowing their data to be used for this kind of assignment. 
 
 The packages used in the report are:
-```{r, echo=FALSE}
+```{r, results='hide', message=FALSE, warning=FALSE}
 library(caret)
 library(rpart)
 library(randomForest)
